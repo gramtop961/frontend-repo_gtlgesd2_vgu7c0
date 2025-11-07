@@ -1,49 +1,67 @@
-import { useEffect } from 'react';
-import { Moon, Sun, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Shield, Bell, Sun, Moon, LogOut } from 'lucide-react';
 
-function Navbar({ dark, toggleDark, feedActive }) {
+export default function Navbar({ isAuthed, onLogout, onShowLogin }) {
+  const [dark, setDark] = useState(true);
+  const [livePulse, setLivePulse] = useState(false);
+
   useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const root = document.documentElement;
+    if (dark) root.classList.add('dark');
+    else root.classList.remove('dark');
   }, [dark]);
 
+  useEffect(() => {
+    const id = setInterval(() => setLivePulse((p) => !p), 1500);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <nav className="w-full border-b border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-black/40 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-20">
+    <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-neutral-900/60 bg-white/80 dark:bg-neutral-900/80 border-b border-neutral-200 dark:border-neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-            <ShieldCheck className="h-5 w-5 text-emerald-500" />
+          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-500">
+            <Shield size={20} />
           </div>
-          <div className="leading-tight">
-            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
-              ScaleShield
-            </h1>
-            <p className="hidden sm:block text-[11px] text-gray-500 dark:text-gray-400">Real-Time Security Monitoring & Management</p>
-          </div>
-          <div className="ml-4 flex items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Real-Time Feed</span>
-            <span
-              className={`relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 ${
-                feedActive ? 'animate-pulse shadow-[0_0_0_3px] shadow-emerald-500/30' : 'opacity-50'
-              }`}
-              aria-label={feedActive ? 'Feed active' : 'Feed paused'}
-            />
+          <div>
+            <div className="font-semibold text-neutral-900 dark:text-white tracking-tight">ScaleShield</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400">Real-time Security Ops</div>
           </div>
         </div>
-        <button
-          onClick={toggleDark}
-          className="inline-flex items-center gap-2 rounded-md border border-gray-200 dark:border-gray-800 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
-          aria-label="Toggle theme"
-        >
-          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          <span className="hidden sm:inline">{dark ? 'Light' : 'Dark'}</span>
-        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800">
+            <span className={`inline-flex h-2 w-2 rounded-full ${livePulse ? 'bg-emerald-400 shadow-[0_0_0_6px_rgba(16,185,129,0.15)]' : 'bg-emerald-600'} transition-all`} />
+            <span className="text-xs text-neutral-600 dark:text-neutral-300">Live feed</span>
+          </div>
+
+          <button
+            onClick={() => setDark((d) => !d)}
+            className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 text-neutral-700 dark:text-neutral-200"
+            aria-label="Toggle theme"
+          >
+            {dark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
+          {isAuthed ? (
+            <button
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90"
+            >
+              <LogOut size={16} />
+              <span className="text-sm">Logout</span>
+            </button>
+          ) : (
+            <button
+              onClick={onShowLogin}
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-md border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+            >
+              <Bell size={16} />
+              <span className="text-sm">Sign in</span>
+            </button>
+          )}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }
-
-export default Navbar;

@@ -1,52 +1,76 @@
-import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar } from 'recharts';
+import { useMemo } from 'react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { ShieldAlert, Activity } from 'lucide-react';
 
-function AnalyticsCards({ logs }) {
-  const byMinute = logs.reduce((acc, l) => {
-    const key = new Date(l.timestamp).toLocaleTimeString([], { minute: '2-digit', hour: '2-digit' });
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-  const data = Object.entries(byMinute).map(([k, v]) => ({ time: k, count: v }));
+export default function AnalyticsCards({ logs }) {
+  const byHour = useMemo(() => {
+    const buckets = new Map();
+    logs.forEach((l) => {
+      const d = new Date(l.time);
+      const key = `${d.getHours()}:00`;
+      buckets.set(key, (buckets.get(key) || 0) + 1);
+    });
+    return Array.from(buckets.entries()).map(([name, value]) => ({ name, value }));
+  }, [logs]);
 
-  const avgThreat = logs.length ? Math.round(logs.reduce((s, l) => s + l.threatScore, 0) / logs.length) : 0;
-  const highAlerts = logs.filter((l) => l.threatScore >= 80).length;
+  const severities = useMemo(() => {
+    const s = { low: 0, medium: 0, high: 0 };
+    logs.forEach((l) => (s[l.severity] = (s[l.severity] || 0) + 1));
+    return [
+      { name: 'Low', value: s.low },
+      { name: 'Medium', value: s.medium },
+      { name: 'High', value: s.high },
+    ];
+  }, [logs]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900 p-4">
-        <h3 className="text-sm text-gray-500 dark:text-gray-400">Threats Over Time</h3>
-        <div className="h-32">
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-4" id="dashboard">
+      <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-neutral-500">Threats (hourly)</div>
+          <Activity size={16} className="text-emerald-500" />
+        </div>
+        <div className="h-28 mt-2">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <XAxis dataKey="time" hide />
-              <YAxis hide />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={false} />
+            <LineChart data={byHour} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,120,120,.2)" />
+              <XAxis dataKey="name" stroke="currentColor" className="text-xs fill-neutral-400" hide />
+              <YAxis stroke="currentColor" className="text-xs fill-neutral-400" hide />
+              <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151', color: 'white' }} />
+              <Line type="monotone" dataKey="value" stroke="#10B981" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900 p-4">
-        <h3 className="text-sm text-gray-500 dark:text-gray-400">Active Alerts</h3>
-        <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{highAlerts}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">Severity ≥ 80</p>
+
+      <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-neutral-500">Active alerts</div>
+          <ShieldAlert size={16} className="text-rose-500" />
+        </div>
+        <div className="mt-2 text-3xl font-semibold text-neutral-900 dark:text-white">
+          {logs.filter((l) => l.severity !== 'low').length}
+        </div>
+        <div className="text-xs text-neutral-500 mt-1">Medium/High severity</div>
       </div>
-      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900 p-4">
-        <h3 className="text-sm text-gray-500 dark:text-gray-400">Log Frequency</h3>
-        <div className="h-32">
+
+      <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-neutral-500">Severity distribution</div>
+          <Activity size={16} className="text-sky-500" />
+        </div>
+        <div className="h-28 mt-2">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <XAxis dataKey="time" hide />
-              <YAxis hide />
-              <Tooltip />
-              <Bar dataKey="count" fill="#22c55e" radius={[4, 4, 0, 0]} />
+            <BarChart data={severities} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,120,120,.2)" />
+              <XAxis dataKey="name" stroke="currentColor" className="text-xs fill-neutral-400" />
+              <YAxis stroke="currentColor" className="text-xs fill-neutral-400" hide />
+              <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151', color: 'white' }} />
+              <Bar dataKey="value" fill="#10B981" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Avg threat score: <span className="font-medium text-gray-900 dark:text-white">{avgThreat}</span></p>
       </div>
-    </div>
+    </section>
   );
 }
-
-export default AnalyticsCards;
