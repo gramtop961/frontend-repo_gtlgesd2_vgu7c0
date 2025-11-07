@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Navbar from './components/Navbar.jsx';
 import HeroScene from './components/HeroScene.jsx';
 import AnalyticsCards from './components/AnalyticsCards.jsx';
@@ -6,41 +6,98 @@ import EmployeeGrid from './components/EmployeeGrid.jsx';
 import ThreatTable from './components/ThreatTable.jsx';
 import LoginModal from './components/LoginModal.jsx';
 
-function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
 export default function App() {
   const [isAuthed, setIsAuthed] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [selected, setSelected] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [employees, setEmployees] = useState(() => (
-    Array.from({ length: 9 }).map((_, i) => ({
-      id: i + 1,
-      name: `Employee ${i + 1}`,
-      role: ['Engineer', 'Analyst', 'Manager'][i % 3],
-      location: ['NYC', 'SF', 'Remote'][i % 3],
-      threatScore: Math.floor(Math.random() * 100),
-    }))
-  ));
+  const [employees, setEmployees] = useState([]);
+  const wsRef = useRef(null);
 
+  const backendURL = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+
+  // When authenticated: fetch initial data and open WebSocket
   useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs((prev) => {
-        const events = ['Login attempt', 'USB mounted', 'Suspicious process', 'Network spike', 'File exfiltration'];
-        const severity = randomItem(['low', 'medium', 'high']);
-        const employee = randomItem(employees).name;
-        const next = [...prev, { time: Date.now(), event: randomItem(events), employee, severity }];
-        return next.slice(-150);
-      });
-      setEmployees((prev) => prev.map((e) => ({
-        ...e,
-        threatScore: Math.max(0, Math.min(100, e.threatScore + Math.floor(Math.random() * 11) - 5)),
-      })));
-    }, 1800);
-    return () => clearInterval(interval);
-  }, [employees]);
+    if (!isAuthed) {
+      // Cleanup on logout
+      if (wsRef.current) {
+        try { wsRef.current.close(); } catch {}
+        wsRef.current = null;
+      }
+      setLogs([]);
+      setEmployees([]);
+      return;
+    }
 
-  const page = isAuthed ? 'dashboard' : 'login';
+    let cancelled = false;
+
+    const loadInitial = async () => {
+      try {
+        const [empRes, logRes] = await Promise.all([
+          fetch(`${backendURL}/employees`),
+          fetch(`${backendURL}/logs`),
+        ]);
+        const [empData, logData] = await Promise.all([empRes.json(), logRes.json()]);
+        if (!cancelled) {
+          setEmployees(empData || []);
+          setLogs(Array.isArray(logData) ? logData.map(l => ({...l, time: new Date(l.time).getTime()})) : []);
+        }
+      } catch (e) {
+        console.error('Failed loading initial data', e);
+      }
+    };
+
+    loadInitial();
+
+    // Open WebSocket for live logs
+    try {
+      const wsUrl = backendURL.replace(/^http/, 'ws') + '/ws';
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg?.type === 'log' && msg.payload) {
+            const payload = msg.payload;
+            const ts = new Date(payload.time).getTime();
+            setLogs((prev) => [...prev, { ...payload, time: ts }].slice(-150));
+            // Nudge employee risk based on event severity
+            setEmployees((prev) => {
+              const next = prev.map((e) => {
+                if (e.name === payload.employee) {
+                  const delta = payload.severity === 'high' ? 6 : payload.severity === 'medium' ? 3 : 1;
+                  return { ...e, threatScore: clamp((e.threatScore ?? 0) + delta, 0, 100) };
+                }
+                // gentle decay for others
+                return { ...e, threatScore: clamp((e.threatScore ?? 0) - 1, 0, 100) };
+              });
+              return next;
+            });
+          }
+        } catch (e) {
+          console.warn('WS parse error', e);
+        }
+      };
+      ws.onerror = (e) => {
+        console.error('WebSocket error', e);
+      };
+      ws.onclose = () => {
+        // optional: retry logic could be added
+      };
+    } catch (e) {
+      console.error('Failed to open WebSocket', e);
+    }
+
+    return () => {
+      cancelled = true;
+      if (wsRef.current) {
+        try { wsRef.current.close(); } catch {}
+        wsRef.current = null;
+      }
+    };
+  }, [isAuthed, backendURL]);
 
   const handleLogout = () => {
     setIsAuthed(false);
@@ -48,6 +105,7 @@ export default function App() {
 
   const handleLoginSuccess = (user) => {
     setIsAuthed(true);
+    setShowLogin(false);
   };
 
   return (
@@ -82,7 +140,7 @@ export default function App() {
         </main>
       )}
 
-      <LoginModal open={showLogin} onClose={() => setShowLogin(false)} onSuccess={handleLoginSuccess} />
+      <LoginModal open={showLogin} onClose={() => setShowLogin(false)} onSuccess={handleLoginSuccess} backendURL={backendURL} />
     </div>
   );
 }

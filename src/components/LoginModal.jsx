@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
 
-export default function LoginModal({ open, onClose, onSuccess }) {
+export default function LoginModal({ open, onClose, onSuccess, backendURL }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,10 +14,14 @@ export default function LoginModal({ open, onClose, onSuccess }) {
     setError('');
     setLoading(true);
     try {
-      // Placeholder auth: accept any non-empty credentials
-      await new Promise((r) => setTimeout(r, 600));
-      if (!email || !password) throw new Error('Enter email and password');
-      onSuccess?.({ email, role: email.includes('admin') ? 'admin' : 'analyst' });
+      const res = await fetch(`${backendURL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error('Login failed');
+      const data = await res.json();
+      onSuccess?.(data);
       onClose?.();
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -44,6 +48,7 @@ export default function LoginModal({ open, onClose, onSuccess }) {
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -57,6 +62,7 @@ export default function LoginModal({ open, onClose, onSuccess }) {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
           </div>
