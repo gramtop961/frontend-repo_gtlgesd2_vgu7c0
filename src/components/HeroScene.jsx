@@ -17,9 +17,9 @@ function HeroScene() {
       >
         <div>
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
-            Live Security Overview
+            ScaleShield: Real-Time Security Monitoring
           </h2>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Futuristic 3D shield signifies protected perimeter</p>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Futuristic 3D shield with a glowing checkmark represents active protection</p>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-emerald-500 text-xs font-medium bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20">
           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />

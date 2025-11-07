@@ -17,9 +17,12 @@ function Navbar({ dark, toggleDark, feedActive }) {
           <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
             <ShieldCheck className="h-5 w-5 text-emerald-500" />
           </div>
-          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
-            Security Control Center
-          </h1>
+          <div className="leading-tight">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              ScaleShield
+            </h1>
+            <p className="hidden sm:block text-[11px] text-gray-500 dark:text-gray-400">Real-Time Security Monitoring & Management</p>
+          </div>
           <div className="ml-4 flex items-center gap-2">
             <span className="text-xs text-gray-500 dark:text-gray-400">Real-Time Feed</span>
             <span
