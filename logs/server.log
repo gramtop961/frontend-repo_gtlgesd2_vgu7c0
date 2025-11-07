@@ -3,7 +3,44 @@
 > vite
 
 
-  VITE v5.4.20  ready in 266 ms
+  VITE v5.4.20  ready in 250 ms
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: http://172.20.5.12:3000/
+10:15:25 AM [vite] Pre-transform error: Failed to resolve import "recharts" from "src/components/AnalyticsCards.jsx". Does the file exist?
+10:15:26 AM [vite] Internal server error: Failed to resolve import "recharts" from "src/components/AnalyticsCards.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/workspace/src/components/AnalyticsCards.jsx:1:91
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar } from "recharts";
+     |                                                                                              ^
+  3  |  function AnalyticsCards({ logs }) {
+  4  |    const byMinute = logs.reduce((acc, l) => {
+      at TransformPluginContext._formatError (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49258:41)
+      at TransformPluginContext.error (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49253:16)
+      at normalizeUrl (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64306:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64438:39
+      at async Promise.all (index 1)
+      at async TransformPluginContext.transform (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64365:7)
+      at async PluginContainer.transform (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49099:18)
+      at async loadAndTransform (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:51977:27)
+      at async viteTransformMiddleware (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:62105:24)
+10:15:57 AM [vite] Internal server error: Failed to resolve import "recharts" from "src/components/AnalyticsCards.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/workspace/src/components/AnalyticsCards.jsx:1:91
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar } from "recharts";
+     |                                                                                              ^
+  3  |  function AnalyticsCards({ logs }) {
+  4  |    const byMinute = logs.reduce((acc, l) => {
+      at TransformPluginContext._formatError (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49258:41)
+      at TransformPluginContext.error (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49253:16)
+      at normalizeUrl (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64306:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64438:39
+      at async Promise.all (index 1)
+      at async TransformPluginContext.transform (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64365:7)
+      at async PluginContainer.transform (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49099:18)
+      at async loadAndTransform (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:51977:27)
+      at async viteTransformMiddleware (file:///home/workspace/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:62105:24)

@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import HeroScene from './components/HeroScene';
 import EmployeeGrid from './components/EmployeeGrid';
 import ThreatTable from './components/ThreatTable';
+import AnalyticsCards from './components/AnalyticsCards';
 
 const ACTIONS = ['login', 'file_access', 'usb_insert', 'vpn_connect', 'privilege_change'];
 const STATUS = ['ok', 'warning', 'failed'];
@@ -53,9 +54,6 @@ function App() {
 
   const topLogs = useMemo(() => logs.slice(-50), [logs]);
 
-  const avgThreat = logs.length ? Math.round(logs.reduce((s, l) => s + l.threatScore, 0) / logs.length) : 0;
-  const highAlerts = logs.filter((l) => l.threatScore >= 80).length;
-
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       <Navbar dark={dark} toggleDark={() => setDark((d) => !d)} feedActive={feedActive} />
@@ -63,21 +61,8 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <HeroScene />
 
-        {/* Lightweight analytics summary */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900 p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Events Ingested</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{logs.length}</p>
-          </div>
-          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900 p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Active High Alerts</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{highAlerts}</p>
-          </div>
-          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900 p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Avg Threat Score</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{avgThreat}</p>
-          </div>
-        </section>
+        {/* Analytics summary using Recharts */}
+        <AnalyticsCards logs={logs} />
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
@@ -91,7 +76,7 @@ function App() {
         </section>
       </main>
 
-      {/* Simple modal */}
+      {/* Employee Detail Modal */}
       {selected && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-lg rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-950 p-6">
